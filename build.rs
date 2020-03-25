@@ -1,13 +1,20 @@
 use cc;
 use glob;
+use pkg_config;
 
 
 fn main() {
+	pkg_config::probe_library("libvmdk").unwrap();
+	pkg_config::probe_library("libbfio").unwrap();
 	println!("cargo:rerun-if-changed=tsk/");
 	println!("cargo:rustc-link-lib=static=tsk");
-    let mut compiler = cc::Build::new();
+	println!("cargo:rustc-link-lib=static=bfio");
+	println!("cargo:rustc-link-lib=static=vmdk");
+	println!("cargo:rustc-link-lib=static=z");
+    let mut c_builder = cc::Build::new();
 
-    compiler.include(".");
+    c_builder.include(".");
+	c_builder.define("HAVE_LIBVMDK", None);
 
     let globs = &[
         "tsk/auto/*.c",
@@ -30,7 +37,7 @@ fn main() {
     for pattern in globs {
         for path in glob::glob(pattern).unwrap() {
             let path = path.unwrap();
-            compiler.file(path);
+            c_builder.file(path);
         }
     }
 
@@ -38,6 +45,6 @@ fn main() {
 	// https://github.com/alexcrichton/cc-rs/issues/156
 	// https://users.rust-lang.org/t/mixed-c-and-c-build-with-cc-rs/26971
 	//
-	//compiler.cpp(true).cpp_link_stdlib("stdc++");
-    compiler.compile("libtsk.a");
+	//c_builder.cpp(true).cpp_link_stdlib("stdc++");
+    c_builder.compile("libtsk.a");
 }
