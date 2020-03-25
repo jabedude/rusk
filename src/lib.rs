@@ -1,4 +1,6 @@
 pub mod ffi;
+mod img;
+
 
 #[cfg(test)]
 mod tests {
